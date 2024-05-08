@@ -55,7 +55,7 @@ class Exporter {
       _exportGif,
       [frames, progressPort.sendPort, resultPort.sendPort],
     );
-    return resultPort.first as List<int>?;
+    return resultPort.first as Future<List<int>?>;
   }
 
   static Future<List<int>?> _exportGif(List params) async {
