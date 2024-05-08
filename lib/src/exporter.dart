@@ -28,7 +28,7 @@ class Exporter {
     for (final frame in _frames) {
       final bytesImage = await frame.image.toByteData(format: ui.ImageByteFormat.png);
       if (bytesImage != null) {
-        bytesImages.add(RawFrame(42, bytesImage));
+        bytesImages.add(RawFrame(16, bytesImage));
       } else {
         print('Skipped frame while enconding');
       }
@@ -79,7 +79,7 @@ class Exporter {
       animation.addFrame(decodedImage);
       i++;
     }
-    resultPort.send(image.encodeGifAnimation(animation));
+    resultPort.send(image.encodeGifAnimation(animation, samplingFactor: 10));
     return image.encodeGifAnimation(animation);
   }
 }
