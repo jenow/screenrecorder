@@ -42,32 +42,31 @@ class Exporter {
       return null;
     }
 
+    final progressPort = ReceivePort();
     final resultPort = ReceivePort();
-    List<int>? result;
 
-    resultPort.listen((message) {
+    progressPort.listen((message) {
       if (message is int) {
         onProgress?.call(message, frames.length);
-      } else if (message is List<int>) {
-        result = message;
       }
     });
 
     await Isolate.spawn(
       _exportGif,
-      [frames, resultPort.sendPort],
+      [frames, progressPort.sendPort, resultPort.sendPort],
     );
-    return result;
+    return resultPort.first as List<int>?;
   }
 
   static Future<List<int>?> _exportGif(List params) async {
     final animation = image.Animation();
     animation.backgroundColor = Colors.transparent.value;
-    SendPort resultPort = params[1];
+    SendPort progressPort = params[1];
+    SendPort resultPort = params[2];
     int i = 0;
     for (final frame in params[0]) {
       // Send i to main isolate
-      resultPort.send(i);
+      progressPort.send(i);
 
       final iAsBytes = frame.image.buffer.asUint8List();
       final decodedImage = image.decodePng(iAsBytes);
