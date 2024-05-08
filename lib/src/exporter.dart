@@ -1,3 +1,4 @@
+import 'dart:isolate';
 import 'dart:ui' as ui show ImageByteFormat;
 
 import 'package:flutter/foundation.dart';
@@ -40,23 +41,31 @@ class Exporter {
     if (frames == null) {
       return null;
     }
-    return compute(
+
+    final resultPort = ReceivePort();
+
+    resultPort.listen((message) {
+      if (message is int) {
+        onProgress?.call(message, frames.length);
+      }
+    });
+
+    await Isolate.spawn(
       _exportGif,
-      {
-        'frames': frames,
-        'onProgress': onProgress,
-      },
+      [frames, resultPort.sendPort],
     );
+    return resultPort.first as List<int>?;
   }
 
-  static Future<List<int>?> _exportGif(Map<String, dynamic> params) async {
+  static Future<List<int>?> _exportGif(List params) async {
     final animation = image.Animation();
     animation.backgroundColor = Colors.transparent.value;
+    SendPort resultPort = params[1];
     int i = 0;
-    for (final frame in params['frames']) {
-      if (params['onProgress'] != null) {
-        params['onProgress']!(i, params['frames'].length);
-      }
+    for (final frame in params[0]) {
+      // Send i to main isolate
+      resultPort.send(i);
+
       final iAsBytes = frame.image.buffer.asUint8List();
       final decodedImage = image.decodePng(iAsBytes);
 
@@ -66,7 +75,9 @@ class Exporter {
       }
       decodedImage.duration = frame.durationInMillis;
       animation.addFrame(decodedImage);
+      i++;
     }
+    resultPort.send(image.encodeGifAnimation(animation));
     return image.encodeGifAnimation(animation);
   }
 }
