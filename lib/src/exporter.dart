@@ -36,7 +36,7 @@ class Exporter {
     return bytesImages;
   }
 
-  Future<List<int>?> exportGif([Function(int, int)? onProgress]) async {
+  void exportGif({required Function(List<int>?) onFinished, Function(int, int)? onProgress}) async {
     final frames = await exportFrames();
     if (frames == null) {
       return null;
@@ -55,7 +55,7 @@ class Exporter {
       _exportGif,
       [frames, progressPort.sendPort, resultPort.sendPort],
     );
-    return resultPort.first as Future<List<int>?>;
+    onFinished(resultPort.first as List<int>?);
   }
 
   static Future<List<int>?> _exportGif(List params) async {
