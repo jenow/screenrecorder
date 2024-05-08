@@ -79,7 +79,7 @@ class Exporter {
       animation.addFrame(decodedImage);
       i++;
     }
-    resultPort.send(image.encodeGifAnimation(animation, samplingFactor: 10));
+    resultPort.send(image.encodeGifAnimation(animation, samplingFactor: 5));
     return image.encodeGifAnimation(animation);
   }
 }
