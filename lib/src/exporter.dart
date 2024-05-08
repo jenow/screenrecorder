@@ -36,7 +36,7 @@ class Exporter {
     return bytesImages;
   }
 
-  void exportGif({required Function(List<int>?) onFinished, Function(int, int)? onProgress}) async {
+  Future<void> exportGif({required Function(List<int>?) onFinished, Function(int, int)? onProgress}) async {
     final frames = await exportFrames();
     if (frames == null) {
       return null;
