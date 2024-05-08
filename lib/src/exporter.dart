@@ -35,7 +35,7 @@ class Exporter {
     return bytesImages;
   }
 
-  Future<List<int>?> exportGif([Function(int, int)? onFrameExported]) async {
+  Future<List<int>?> exportGif([Function(int, int)? onProgress]) async {
     final frames = await exportFrames();
     if (frames == null) {
       return null;
@@ -44,7 +44,7 @@ class Exporter {
       _exportGif,
       {
         'frames': frames,
-        'onFrameExported': onFrameExported,
+        'onProgress': onProgress,
       },
     );
   }
@@ -54,8 +54,8 @@ class Exporter {
     animation.backgroundColor = Colors.transparent.value;
     int i = 0;
     for (final frame in params['frames']) {
-      if (params['onFrameExported'] != null) {
-        params['onFrameExported']!(i, params['frames'].length);
+      if (params['onProgress'] != null) {
+        params['onProgress']!(i, params['frames'].length);
       }
       final iAsBytes = frame.image.buffer.asUint8List();
       final decodedImage = image.decodePng(iAsBytes);
