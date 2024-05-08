@@ -43,10 +43,13 @@ class Exporter {
     }
 
     final resultPort = ReceivePort();
+    List<int>? result;
 
     resultPort.listen((message) {
       if (message is int) {
         onProgress?.call(message, frames.length);
+      } else if (message is List<int>) {
+        result = message;
       }
     });
 
@@ -54,7 +57,7 @@ class Exporter {
       _exportGif,
       [frames, resultPort.sendPort],
     );
-    return resultPort.first as List<int>?;
+    return result;
   }
 
   static Future<List<int>?> _exportGif(List params) async {
