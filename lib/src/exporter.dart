@@ -25,10 +25,9 @@ class Exporter {
     }
     final bytesImages = <RawFrame>[];
     for (final frame in _frames) {
-      final bytesImage =
-          await frame.image.toByteData(format: ui.ImageByteFormat.png);
+      final bytesImage = await frame.image.toByteData(format: ui.ImageByteFormat.png);
       if (bytesImage != null) {
-        bytesImages.add(RawFrame(16, bytesImage));
+        bytesImages.add(RawFrame(42, bytesImage));
       } else {
         print('Skipped frame while enconding');
       }
@@ -36,18 +35,28 @@ class Exporter {
     return bytesImages;
   }
 
-  Future<List<int>?> exportGif() async {
+  Future<List<int>?> exportGif([Function(int, int)? onFrameExported]) async {
     final frames = await exportFrames();
     if (frames == null) {
       return null;
     }
-    return compute(_exportGif, frames);
+    return compute(
+      _exportGif,
+      {
+        'frames': frames,
+        'onFrameExported': onFrameExported,
+      },
+    );
   }
 
-  static Future<List<int>?> _exportGif(List<RawFrame> frames) async {
+  static Future<List<int>?> _exportGif(Map<String, dynamic> params) async {
     final animation = image.Animation();
     animation.backgroundColor = Colors.transparent.value;
-    for (final frame in frames) {
+    int i = 0;
+    for (final frame in params['frames']) {
+      if (params['onFrameExported'] != null) {
+        params['onFrameExported']!(i, params['frames'].length);
+      }
       final iAsBytes = frame.image.buffer.asUint8List();
       final decodedImage = image.decodePng(iAsBytes);
 
