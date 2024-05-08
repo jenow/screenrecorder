@@ -36,7 +36,7 @@ class Exporter {
     return bytesImages;
   }
 
-  Future<void> exportGif({required Function(List<int>?) onFinished, Function(int, int)? onProgress}) async {
+  Future<void> exportGif({required Function(List<int>?) onFinished, Function(int, int)? onProgress, int samplingFactor = 10}) async {
     final frames = await exportFrames();
     if (frames == null) {
       return null;
@@ -53,7 +53,7 @@ class Exporter {
 
     await Isolate.spawn(
       _exportGif,
-      [frames, progressPort.sendPort, resultPort.sendPort],
+      [frames, progressPort.sendPort, resultPort.sendPort, samplingFactor],
     );
     onFinished(await resultPort.first as List<int>?);
   }
@@ -63,6 +63,7 @@ class Exporter {
     animation.backgroundColor = Colors.transparent.value;
     SendPort progressPort = params[1];
     SendPort resultPort = params[2];
+    int samplingFactor = params[3];
     int i = 0;
     for (final frame in params[0]) {
       // Send i to main isolate
@@ -79,7 +80,7 @@ class Exporter {
       animation.addFrame(decodedImage);
       i++;
     }
-    resultPort.send(image.encodeGifAnimation(animation, samplingFactor: 1));
+    resultPort.send(image.encodeGifAnimation(animation, samplingFactor: samplingFactor));
     return image.encodeGifAnimation(animation);
   }
 }
